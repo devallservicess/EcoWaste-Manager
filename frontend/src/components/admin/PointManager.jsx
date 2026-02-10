@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getPoints, savePoint, deletePoint } from '../../services/api';
-import { Plus, Edit, Trash, X, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Save, MapPin, Navigation, Droplets, Trash, Search, Zap } from 'lucide-react';
 
 const PointManager = () => {
     const [points, setPoints] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
@@ -56,7 +57,6 @@ const PointManager = () => {
             fetchPoints();
         } catch (error) {
             console.error("Error saving point:", error);
-            alert("Failed to save point");
         }
     };
 
@@ -67,140 +67,202 @@ const PointManager = () => {
                 fetchPoints();
             } catch (error) {
                 console.error("Error deleting point:", error);
-                alert("Failed to delete point");
             }
         }
     };
 
+    const filteredPoints = points.filter(p =>
+        p.id.toString().includes(searchTerm) ||
+        p.typeDechet.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div>
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Manage Collection Points</h2>
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="relative flex-1 w-full max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Search by ID or waste type..."
+                        className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="bg-emerald-600 text-white px-4 py-2 rounded flex items-center hover:bg-emerald-700"
+                    className="w-full sm:w-auto bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition flex items-center justify-center shadow-lg shadow-emerald-100"
                 >
-                    <Plus size={18} className="mr-2" />
-                    Add Point
+                    <Plus size={20} className="mr-2" />
+                    New Hub
                 </button>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="py-2 px-4 border-b text-left">ID</th>
-                            <th className="py-2 px-4 border-b text-left">Location (Lat, Lng)</th>
-                            <th className="py-2 px-4 border-b text-left">Capacity</th>
-                            <th className="py-2 px-4 border-b text-left">Fill Level</th>
-                            <th className="py-2 px-4 border-b text-left">Type</th>
-                            <th className="py-2 px-4 border-b text-left">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {points.map((point) => (
-                            <tr key={point.id} className="hover:bg-gray-50">
-                                <td className="py-2 px-4 border-b">{point.id}</td>
-                                <td className="py-2 px-4 border-b">{point.latitude}, {point.longitude}</td>
-                                <td className="py-2 px-4 border-b">{point.capacite}</td>
-                                <td className="py-2 px-4 border-b">{point.niveauRemplissage}%</td>
-                                <td className="py-2 px-4 border-b">{point.typeDechet}</td>
-                                <td className="py-2 px-4 border-b space-x-2">
-                                    <button onClick={() => handleOpenModal(point)} className="text-blue-600 hover:text-blue-800">
-                                        <Edit size={18} />
-                                    </button>
-                                    <button onClick={() => handleDelete(point.id)} className="text-red-600 hover:text-red-800">
-                                        <Trash size={18} />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPoints.map((p) => (
+                    <div key={p.id} className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
+                        <div className={`absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 rounded-full opacity-[0.03] transition-transform group-hover:scale-125 pointer-events-none ${p.niveauRemplissage > 80 ? 'bg-rose-500' : 'bg-emerald-500'
+                            }`}></div>
+
+                        <div className="flex justify-between items-start mb-6">
+                            <div className={`${p.niveauRemplissage > 80 ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                } p-3 rounded-xl border transition-colors`}>
+                                <MapPin size={24} strokeWidth={1.5} />
+                            </div>
+                            <div className="flex space-x-1">
+                                <button onClick={() => handleOpenModal(p)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"><Edit size={18} /></button>
+                                <button onClick={() => handleDelete(p.id)} className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"><Trash2 size={18} /></button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-800 flex items-center">
+                                    Hub #{p.id}
+                                    {p.niveauRemplissage > 80 && <Zap size={14} className="ml-2 text-rose-500 animate-pulse" />}
+                                </h3>
+                                <div className="flex items-center text-xs text-gray-400 mt-1 font-medium">
+                                    <Navigation size={12} className="mr-1" />
+                                    {p.latitude.toFixed(4)}, {p.longitude.toFixed(4)}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
+                                    <span className="text-gray-400">Current Occupancy</span>
+                                    <span className={p.niveauRemplissage > 80 ? 'text-rose-600' : 'text-emerald-600'}>{p.niveauRemplissage}%</span>
+                                </div>
+                                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full transition-all duration-1000 ${p.niveauRemplissage > 80 ? 'bg-rose-500' : 'bg-emerald-500'
+                                            }`}
+                                        style={{ width: `${p.niveauRemplissage}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-50">
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Max Volume</p>
+                                    <div className="flex items-center text-gray-700 font-bold text-sm">
+                                        <Trash size={14} className="mr-1 text-gray-300" />
+                                        {p.capacite} L
+                                    </div>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Waste Type</p>
+                                    <div className="flex items-center text-blue-600 font-bold text-sm uppercase">
+                                        <Droplets size={14} className="mr-1" />
+                                        {p.typeDechet}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+
+                {filteredPoints.length === 0 && (
+                    <div className="col-span-full py-12 text-center text-gray-400 italic bg-gray-50/50 rounded-2xl border-2 border-dashed border-gray-100">
+                        No collection hubs found.
+                    </div>
+                )}
             </div>
 
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold">{isEditing ? 'Edit Point' : 'Add Point'}</h3>
-                            <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                <div className="fixed inset-0 bg-emerald-950/20 backdrop-blur-sm flex justify-center items-end sm:items-center z-50 p-4 animate-fade-in">
+                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-white/20 transform animate-slide-up">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 rounded-t-3xl">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600">
+                                    <MapPin size={20} />
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-800">{isEditing ? 'Modify Hub' : 'Establish New Hub'}</h3>
+                            </div>
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500">
                                 <X size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">ID</label>
-                                <input
-                                    type="number"
-                                    value={formData.id}
-                                    onChange={(e) => setFormData({ ...formData, id: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
-                                    required
-                                    disabled={isEditing}
-                                />
+
+                        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">UNIQUE HUB ID</label>
+                                    <input
+                                        type="number"
+                                        value={formData.id}
+                                        onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 outline-none disabled:opacity-50 font-mono"
+                                        required
+                                        disabled={isEditing}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">TOTAL CAPACITY (L)</label>
+                                    <input
+                                        type="number"
+                                        value={formData.capacite}
+                                        onChange={(e) => setFormData({ ...formData, capacite: e.target.value })}
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 outline-none"
+                                        required
+                                        placeholder="Volume in Liters"
+                                    />
+                                </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Latitude</label>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">LATITUDE</label>
                                     <input
                                         type="number"
                                         step="any"
                                         value={formData.latitude}
                                         onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 outline-none"
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">Longitude</label>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">LONGITUDE</label>
                                     <input
                                         type="number"
                                         step="any"
                                         value={formData.longitude}
                                         onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 focus:ring-2 focus:ring-emerald-500 outline-none"
                                         required
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Capacity</label>
-                                <input
-                                    type="number"
-                                    value={formData.capacite}
-                                    onChange={(e) => setFormData({ ...formData, capacite: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Waste Type</label>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">WASTE CATEGORIZATION</label>
                                 <select
                                     value={formData.typeDechet}
                                     onChange={(e) => setFormData({ ...formData, typeDechet: e.target.value })}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
                                 >
-                                    <option value="General">General</option>
-                                    <option value="Plastic">Plastic</option>
-                                    <option value="Glass">Glass</option>
-                                    <option value="Paper">Paper</option>
+                                    <option value="General">Household / General</option>
+                                    <option value="Plastic">Plastic & Polymers</option>
+                                    <option value="Glass">Glass / Silica</option>
+                                    <option value="Paper">Paper & Cardboard</option>
+                                    <option value="Organic">Bio-Organic Waste</option>
                                 </select>
                             </div>
-                            <div className="flex justify-end space-x-2 pt-4">
+
+                            <div className="flex justify-end gap-3 pt-4">
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50"
+                                    className="px-6 py-3 border border-gray-200 rounded-xl text-gray-500 font-bold hover:bg-gray-50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-emerald-600 text-white rounded hover:bg-emerald-700 flex items-center"
+                                    className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center"
                                 >
-                                    <Save size={18} className="mr-2" />
-                                    Save
+                                    <Save size={20} className="mr-2" />
+                                    {isEditing ? 'Save Location' : 'Register Location'}
                                 </button>
                             </div>
                         </form>

@@ -1,23 +1,36 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import PlanTours from './pages/PlanTours';
-import ImportExport from './pages/ImportExport';
+import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import './index.css';
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
+      <AuthProvider>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/plan-tours" element={<PlanTours />} />
-          <Route path="/data" element={<ImportExport />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          {/* Redirect old routes to admin or keep them? 
+              I'll keep them but protect them if accessed directly, 
+              or just redirect to admin since they are now tabs. 
+          */}
+          <Route path="/dashboard" element={<Navigate to="/admin" replace />} />
+          <Route path="/plan-tours" element={<Navigate to="/admin" replace />} />
+          <Route path="/data" element={<Navigate to="/admin" replace />} />
         </Routes>
-      </div>
+      </AuthProvider>
     </Router>
   );
 }

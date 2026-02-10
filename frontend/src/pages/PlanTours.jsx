@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import { autoPlanTournee, saveTournee } from '../services/api';
+import { Calendar, Save, Trash2, MapPin, Truck, Users, Sparkles } from 'lucide-react';
 
-const PlanTours = () => {
+const PlanTours = ({ headless = false }) => {
     const [date, setDate] = useState('');
     const [plannedTour, setPlannedTour] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -32,95 +33,133 @@ const PlanTours = () => {
         }
     };
 
-    return (
-        <div className="min-h-screen bg-gray-50">
-            <Navbar />
-            <div className="container mx-auto p-6 max-w-4xl">
-                <h1 className="text-3xl font-bold mb-6">Plan Collection Tours</h1>
+    const content = (
+        <div className={headless ? "" : "container mx-auto p-6 max-w-4xl"}>
+            {!headless && <h1 className="text-3xl font-bold mb-8 text-gray-800">Plan Collection Tours</h1>}
 
-                <div className="bg-white p-8 rounded-xl shadow-md mb-8">
-                    <form onSubmit={handlePlan} className="flex gap-4 items-end">
-                        <div className="flex-1">
-                            <label className="block text-gray-700 font-medium mb-2">Select Date for Tour</label>
+            <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-8 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                    <Sparkles size={120} />
+                </div>
+                <form onSubmit={handlePlan} className="relative z-10 flex flex-col md:flex-row gap-6 items-end">
+                    <div className="flex-1 w-full">
+                        <label className="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-tight">Select Date for Tour</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                             <input
                                 type="date"
-                                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-green-500 outline-none"
+                                className="w-full border border-gray-200 rounded-xl p-3 pl-11 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all shadow-sm"
                                 value={date}
                                 onChange={(e) => setDate(e.target.value)}
                                 required
                             />
                         </div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition disabled:opacity-50"
-                        >
-                            {loading ? 'Calculating...' : 'Auto-Generate Plan'}
-                        </button>
-                    </form>
-                </div>
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full md:w-auto bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 transition disabled:opacity-50 shadow-lg shadow-emerald-200 flex items-center justify-center"
+                    >
+                        {loading ? 'Calculating...' : (
+                            <>
+                                <Sparkles size={20} className="mr-2" />
+                                Optimize Routes
+                            </>
+                        )}
+                    </button>
+                </form>
+            </div>
 
-                {plannedTour && (
-                    <div className="bg-white p-8 rounded-xl shadow-md animate-fade-in">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold">Proposed Tour Plan</h2>
-                            <span className="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-bold">
-                                Distance: {plannedTour.distance} km
+            {plannedTour && (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in mb-8">
+                    <div className="bg-emerald-50 p-6 flex justify-between items-center border-b border-emerald-100">
+                        <div>
+                            <h2 className="text-xl font-bold text-emerald-900">Proposed Tour Plan</h2>
+                            <p className="text-sm text-emerald-700 font-medium">{date}</p>
+                        </div>
+                        <div className="text-right">
+                            <span className="bg-emerald-600 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-sm">
+                                {plannedTour.distance} KM TOTAL
                             </span>
                         </div>
+                    </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                            <div>
-                                <h3 className="font-semibold text-gray-700 mb-3 border-b pb-2">Points to Collect</h3>
-                                <ul className="space-y-2">
-                                    {plannedTour.points.map(pid => (
-                                        <li key={pid} className="flex items-center gap-2">
-                                            <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                                            Point #{pid}
-                                        </li>
-                                    ))}
-                                    {plannedTour.points.length === 0 && <p className="text-gray-500 italic">No critical points found.</p>}
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-gray-700 mb-3 border-b pb-2">Assigned Resources</h3>
-                                <div className="mb-4">
-                                    <p className="text-sm text-gray-500">Vehicles</p>
-                                    <div className="flex gap-2 mt-1">
-                                        {plannedTour.vehicules.map(v => (
-                                            <span key={v} className="bg-gray-100 px-3 py-1 rounded text-sm">Vehicle #{v}</span>
-                                        ))}
+                    <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div>
+                            <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                                <MapPin size={18} className="mr-2 text-rose-500" />
+                                Points to Collect
+                            </h3>
+                            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                                {plannedTour.points.map(pid => (
+                                    <div key={pid} className="flex items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-xs font-bold text-emerald-600 mr-3 shadow-sm">
+                                            {pid}
+                                        </div>
+                                        <span className="font-medium text-gray-700">Bin Location #{pid}</span>
                                     </div>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Agents (CIN)</p>
-                                    <div className="flex flex-wrap gap-2 mt-1">
-                                        {plannedTour.agents.map(a => (
-                                            <span key={a} className="bg-gray-100 px-3 py-1 rounded text-sm">{a}</span>
-                                        ))}
-                                    </div>
-                                </div>
+                                ))}
+                                {plannedTour.points.length === 0 && <p className="text-gray-400 italic text-sm py-4 text-center">No critical points detected for this date.</p>}
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-4">
-                            <button
-                                onClick={() => setPlannedTour(null)}
-                                className="px-6 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition"
-                            >
-                                Discard
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className="bg-blue-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200"
-                            >
-                                Confirm & Save Tour
-                            </button>
+                        <div className="space-y-8">
+                            <div>
+                                <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                                    <Truck size={18} className="mr-2 text-blue-500" />
+                                    Assigned Vehicles
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {plannedTour.vehicules.map(v => (
+                                        <span key={v} className="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl text-sm font-semibold border border-blue-100">
+                                            ID: {v}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-800 mb-4 flex items-center">
+                                    <Users size={18} className="mr-2 text-amber-500" />
+                                    Assigned Agents
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {plannedTour.agents.map(a => (
+                                        <span key={a} className="bg-amber-50 text-amber-700 px-4 py-2 rounded-xl text-sm font-semibold border border-amber-100">
+                                            CIN: {a}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                )}
-            </div>
+
+                    <div className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
+                        <button
+                            onClick={() => setPlannedTour(null)}
+                            className="px-6 py-2.5 text-gray-500 font-bold hover:text-gray-700 transition flex items-center"
+                        >
+                            <Trash2 size={18} className="mr-2" />
+                            Discard
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            className="bg-emerald-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-200 flex items-center"
+                        >
+                            <Save size={18} className="mr-2" />
+                            Confirm Plan
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
+    if (headless) return content;
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <Navbar />
+            {content}
         </div>
     );
 };
