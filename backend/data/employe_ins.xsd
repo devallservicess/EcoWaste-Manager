@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified">
+
+    <!-- Root Element -->
+    <xs:element name="employes">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="employe" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="nom" type="xs:string"/>
+                            <xs:element name="prenom" type="xs:string"/>
+                            <xs:element name="cin" type="xs:int"/>
+                            <xs:element name="tel" type="xs:string"/>
+                            <xs:element name="password" type="xs:string"/>
+                            <xs:element name="status" type="xs:string"/>
+                            <xs:element name="competence" type="xs:string"/>
+
+                            <xs:element name="disponibilites">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="disponibilite" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="date" type="xs:string"/>
+                                                    <xs:element name="etat" type="xs:boolean"/>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+
+        <!-- KEYS MUST BE PLACED *HERE* (inside xs:element, not xs:complexType) -->
+
+        <!-- cin must be UNIQUE -->
+        <xs:key name="uniqueCin">
+            <xs:selector xpath="employe"/>
+            <xs:field xpath="cin"/>
+        </xs:key>
+
+        <!-- tel must be UNIQUE (optional) -->
+        <xs:key name="uniqueTel">
+            <xs:selector xpath="employe"/>
+            <xs:field xpath="tel"/>
+        </xs:key>
+
+    </xs:element>
+
+</xs:schema>
