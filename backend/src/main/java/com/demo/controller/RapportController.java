@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/rapports")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://melodious-sprite-a21549.netlify.app/")
 public class RapportController {
 
     @Autowired

@@ -17,7 +17,7 @@ import java.nio.file.StandardCopyOption;
 
 @RestController
 @RequestMapping("/api/data")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://melodious-sprite-a21549.netlify.app/")
 public class ImportExportController {
 
     private final String DATA_DIR = "data/";
